@@ -55,3 +55,37 @@ jobs:
         working-directory: ./
         run: make test-integration
 
+  example-tests:
+    name: Example Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      - name: Install CGO dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsystemd-dev libseccomp-dev libcap-dev
+
+      - name: Build helloworld example
+        working-directory: ./
+        run: make example-helloworld
+
+      - name: Run helloworld example
+        working-directory: ./examples/helloworld
+        run: ./helloworld
+
+      - name: Build crungo
+        working-directory: ./
+        run: make example-crungo
+
+      - name: Run crungo DNS resolution test
+        working-directory: ./
+        run: sudo ./examples/crungo/crungo run --net=host alpine nslookup google.com
+
