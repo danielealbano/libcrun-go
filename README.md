@@ -197,30 +197,36 @@ Run benchmarks (requires root, uses `sudo`):
 make benchmark
 ```
 
-Two benchmarks are available:
+Three benchmarks are available:
 - `BenchmarkContainerThroughput` - libcrun-go performance
-- `BenchmarkPodman` - podman baseline for comparison (same configurations)
+- `BenchmarkCrun` - crun CLI baseline (same libcrun library, invoked via CLI)
+- `BenchmarkPodman` - podman baseline for comparison
 
-### libcrun-go vs Podman Comparison
+### libcrun-go vs crun CLI vs Podman
 
-Measured on AMD Ryzen 9 5900X, running containers that execute `/bin/true`. Both use the same rootfs. Podman configured for minimal overhead (no networking, no logging, no SELinux, no seccomp):
+Measured on AMD Ryzen 9 5900X, running containers that execute `/bin/true`. All use the same rootfs. Podman configured for minimal overhead (no networking, no logging, no SELinux, no seccomp):
 
-| Workers | Duration | libcrun-go | podman | Speedup |
-|---------|----------|------------|--------|---------|
-| 1       | 1s       | 121/s      | 11/s   | **11x** |
-| 4       | 1s       | 377/s      | 20/s   | **19x** |
-| 8       | 1s       | 513/s      | 25/s   | **21x** |
-| 16      | 1s       | 569/s      | 33/s   | **17x** |
-| 1       | 5s       | 98/s       | 10/s   | **10x** |
-| 4       | 5s       | 318/s      | 18/s   | **18x** |
-| 8       | 5s       | 452/s      | 25/s   | **18x** |
-| 16      | 5s       | 481/s      | 31/s   | **16x** |
+| Workers | Duration | libcrun-go | crun CLI | podman | vs podman |
+|---------|----------|------------|----------|--------|-----------|
+| 1       | 1s       | 135/s      | 176/s    | 11/s   | **12-16x** |
+| 4       | 1s       | 352/s      | 516/s    | 22/s   | **16-23x** |
+| 8       | 1s       | 569/s      | 740/s    | 29/s   | **20-26x** |
+| 16      | 1s       | 649/s      | 887/s    | 37/s   | **18-24x** |
+| 1       | 5s       | 107/s      | 169/s    | 11/s   | **10-15x** |
+| 4       | 5s       | 320/s      | 525/s    | 18/s   | **18-29x** |
+| 8       | 5s       | 467/s      | 735/s    | 24/s   | **19-31x** |
+| 16      | 5s       | 508/s      | 850/s    | 33/s   | **15-26x** |
 
-**Average speedup: ~10-21x faster than podman**
+**Key findings:**
+- **libcrun-go: 10-20x faster than podman**
+- **crun CLI: 15-31x faster than podman**
+- crun CLI is ~1.3-1.6x faster than libcrun-go due to spec reuse (see below)
 
-**Why the difference?** Both libcrun-go and podman fork in these benchmarks - libcrun-go forks once per container to isolate stdout/stderr handling. However, podman has significantly more overhead on top of the fork.
+**When to use libcrun-go over podman?** If you don't need podman's full feature set (image management, networking plugins, pod orchestration, systemd integration) and prefer direct library control over spawning external processes, libcrun-go is an excellent choice. It gives you fine-grained programmatic control over the container lifecycle without the overhead of CLI invocation and IPC.
 
-**Podman benchmark configuration:** The benchmark disables networking, logging, SELinux, and seccomp to minimize overhead. However, podman still performs operations that cannot be disabled:
+**Why is crun CLI faster than libcrun-go?** The benchmark creates a new OCI spec for each container in libcrun-go (`NewSpec()` call), while crun CLI reuses the same `config.json` from disk. In real applications where specs are reused or cached, libcrun-go performance would be closer to crun CLI.
+
+**Why are both dramatically faster than podman?** Podman has significant architectural overhead:
 - Spawns `conmon` (container monitor daemon) for each container
 - Fork/exec overhead for the podman process itself
 - IPC between podman → conmon → container
