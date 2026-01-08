@@ -1,4 +1,4 @@
-.PHONY: build test test-unit test-integration benchmark clean
+.PHONY: build test test-unit test-integration benchmark clean example-helloworld example-crungo
 
 # Package filter: excludes examples directory
 PACKAGES = $(shell go list ./... | grep -v /examples/)
@@ -41,3 +41,14 @@ benchmark:
 
 clean:
 	go clean $(PACKAGES)
+
+# Example build targets
+example-helloworld:
+	@echo "Building static helloworld binary..."
+	$(MAKE) -C examples/helloworld/static-helloworld build
+	@echo "Building helloworld example..."
+	cd examples/helloworld && go build -o helloworld .
+
+example-crungo:
+	@echo "Building crungo..."
+	$(MAKE) -C examples/crungo build
