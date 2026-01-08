@@ -1,5 +1,7 @@
 # libcrun-go
 
+[![CI](https://github.com/danielealbano/libcrun-go/actions/workflows/ci.yml/badge.svg)](https://github.com/danielealbano/libcrun-go/actions/workflows/ci.yml)
+
 Go bindings for [libcrun](https://github.com/containers/crun), the fast and lightweight OCI container runtime written in C.
 
 ## Features
