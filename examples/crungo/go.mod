@@ -8,11 +8,12 @@ require (
 	github.com/danielealbano/libcrun-go v0.0.0-00010101000000-000000000000
 	github.com/google/go-containerregistry v0.20.7
 	github.com/spf13/cobra v1.10.2
+	golang.org/x/term v0.38.0
 )
 
 require (
 	github.com/containerd/stargz-snapshotter/estargz v0.18.1 // indirect
-	github.com/docker/cli v29.0.3+incompatible // indirect
+	github.com/docker/cli v29.2.0+incompatible // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.9.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -26,5 +27,4 @@ require (
 	github.com/vbatts/tar-split v0.12.2 // indirect
 	golang.org/x/sync v0.18.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/term v0.38.0 // indirect
 )
